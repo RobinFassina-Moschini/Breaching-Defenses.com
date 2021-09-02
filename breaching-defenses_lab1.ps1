@@ -33,7 +33,7 @@ Add-LabMachineDefinition -Name Wrkstn-1 -ResourceName 1-Wrkstn-1 -IpAddress 192.
 Install-Lab
 
 Write-ScreenInfo -Message 'Install Tools' -TaskStart
-. $PSScriptRoot\tools.ps1 -labSources $labSources 
+. $PSScriptRoot\tools.ps1 -labSource $labSources 
 Write-ScreenInfo -Message 'Finished' -TaskEnd
 
 Checkpoint-LabVM -All -SnapshotName 'FirstSnapshot'

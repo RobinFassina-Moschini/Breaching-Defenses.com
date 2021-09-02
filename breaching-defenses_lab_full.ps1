@@ -52,7 +52,7 @@ Add-LabMachineDefinition -Processors 2 -MaxMemory 4096MB -Memory 4096MB -Name EL
 Install-Lab
 
 Write-ScreenInfo -Message 'Install Tools' -TaskStart
-. $PSScriptRoot\tools.ps1 -labSources $labSources 
+. $PSScriptRoot\tools.ps1 -labSource $labSources 
 Write-ScreenInfo -Message 'Finished' -TaskEnd
 
 Checkpoint-LabVM -All -SnapshotName 'FirstSnapshot'
