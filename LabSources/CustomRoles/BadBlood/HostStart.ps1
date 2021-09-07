@@ -30,9 +30,7 @@ function Disable-PasswordComplexity
 function Install-BadBlood
 {
     Write-ScreenInfo -Message 'Run BadBlood' -TaskStart
-    Invoke-LabCommand -ActivityName CreateFolder -ScriptBlock { $targetFolder = "C:\User\Install\Documents\BadBlood"; if (-not (Test-Path $targetFolder)) { New-Item $targetFolder -ItemType Directory | out-Null }} -ComputerName $ComputerName -PassThru
-    Invoke-LabCommand -ActivityName CopyFile -ScriptBlock { Copy-Item -Path C:\Tools\BadBlood\* -Destination $targetFolder -Recurse -Force} -ComputerName $ComputerName -PassThru
-    Invoke-LabCommand -ActivityName RunBadBlood -ScriptBlock { cd C:\User\Install\Documents\BadBlood ; .\Invoke-BadBlood.ps1 -NonInteractive -UserCount 500 -GroupCount 50 -ComputerCount 100 } -ComputerName $ComputerName -PassThru
+    Invoke-LabCommand -ActivityName RunBadBlood -ScriptBlock { cd C:\Tools\BadBlood ; .\Invoke-BadBlood.ps1 -NonInteractive -UserCount 500 -GroupCount 50 -ComputerCount 100 } -ComputerName $ComputerName -PassThru
 
     Write-ScreenInfo 'finished' -TaskEnd
 }

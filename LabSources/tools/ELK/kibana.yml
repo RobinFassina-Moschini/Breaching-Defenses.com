@@ -110,8 +110,8 @@ logging.dest: C:\ProgramData\Elastic\Kibana_logs
 # Supported languages are the following: English - en , by default , Chinese - zh-CN .
 #i18n.locale: "en"
 xpack.security.enabled: true
-elasticsearch.username: "kibana_system"
-elasticsearch.password: Password1
+elasticsearch.username: "elk"
+elasticsearch.password: "Password1"
 xpack.encryptedSavedObjects.encryptionKey: a46aa8940da8f6b539f15303aee23246
 xpack.reporting.encryptionKey: fcb1015bda9a3ffb662501e8bc5ca4cb
 xpack.security.encryptionKey: 1f5b0cd0378c8c2712b88f18d07e128c

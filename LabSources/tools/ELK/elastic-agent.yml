@@ -11,8 +11,8 @@ outputs:
   default:
     type: elasticsearch
     hosts: [192.168.42.200:9200]
-    username: elastic
-    password: Password1
+    username: "elk"
+    password: "Password1"
 
 inputs:
   - type: system/metrics

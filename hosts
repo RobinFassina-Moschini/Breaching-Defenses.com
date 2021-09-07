@@ -1,0 +1,12 @@
+192.168.42.10 DC1.breachdefs.com
+192.168.42.150 DC2.IT.breachdefs.com
+192.168.42.12 SQL1.breachdefs.com
+192.168.42.13 SQL2.breachdefs.com
+192.168.42.151 Wrkstn-1.breachdefs.com
+192.168.42.151 Wrkstn-1.IT.breachdefs.com
+192.168.42.152 Wrkstn-2.breachdefs.com
+192.168.42.152 Wrkstn-2.it.breachdefs.com
+192.168.42.200 elastic.breachdefs.com
+192.168.42.200 elk.breachdefs.com
+192.168.42.200 elk.it.breachdefs.com
+192.168.42.11 owa.breachdefs.com

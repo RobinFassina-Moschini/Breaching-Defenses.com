@@ -11,5 +11,10 @@ path.logs: C:\ProgramData\Elastic\Elasticsearch\logs
 transport.tcp.port: 9300
 xpack.license.self_generated.type: basic
 xpack.security.enabled: true
+xpack.security.authc.api_key.enabled: true
+xpack.security.authc.anonymous.roles: superuser
+xpack.security.authc.anonymous.authz_exception: false
 network.host: 192.168.42.200
 discovery.type: single-node
+ingest.geoip.downloader.enabled: false
+

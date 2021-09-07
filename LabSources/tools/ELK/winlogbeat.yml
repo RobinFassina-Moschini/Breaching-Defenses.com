@@ -59,7 +59,8 @@ winlogbeat.event_logs:
           file: ${path.home}/module/powershell/config/winlogbeat-powershell.js
 
 # ====================== Elasticsearch template settings =======================
-
+setup.template.name: "winlogbeat"
+setup.template.pattern: "winlogbeat-*"
 setup.template.settings:
   index.number_of_shards: 1
   #index.codec: best_compression
@@ -95,7 +96,7 @@ output.elasticsearch:
 
   # Authentication credentials - either API key or username/password.
   #api_key: "id:api_key"
-  username: "elastic"
+  username: "elk"
   password: "Password1"
 
 # ================================= Processors =================================
@@ -104,3 +105,14 @@ processors:
       when.not.contains.tags: forwarded
   - add_cloud_metadata: ~
 
+logging.level: info
+logging.to_files: true
+logging.files.path: C:\Tools\ELK\winlogbeat\
+logging.files.name: winlogbeat.logs
+
+setup.ilm.enabled: true
+setup.ilm.rollover_alias: "winlogbeat"
+setup.ilm.pattern: "{now/d}-000001"
+setup.ilm.policy_file: C:\Tools\ELK\winlogbeat\winlogbeatPolicy.json
+setup.ilm.check_exists: false
+setup.ilm.overwrite: true

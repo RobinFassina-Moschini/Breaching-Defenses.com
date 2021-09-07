@@ -106,7 +106,7 @@ Download-BadBlood
 function Download-ELKSources
 {
     #The version of ELK
-    $versionELK = '7.14.0'
+    $versionELK = '7.14.1'
     $elasticsearchDownloadLink = "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$versionELK-windows-x86_64.zip"
     $kibanaDownloadLink = "https://artifacts.elastic.co/downloads/kibana/kibana-$versionELK-windows-x86_64.zip"
     $logstashDownloadLink = "https://artifacts.elastic.co/downloads/logstash/logstash-$versionELK-windows-x86_64.zip"
@@ -124,22 +124,19 @@ function Download-ELKSources
     Write-ScreenInfo -Message "Downloading elasticsearch from '$elasticsearchDownloadLink'"
     $script:elasticInstallFile = Get-LabInternetFile -Uri $elasticsearchDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
     if (-not (Test-Path $downloadTargetFolder\elasticsearch)) {
-        $dest = "$downloadTargetFolder\elasticsearch.zip"
-        Copy-Item $elasticInstallFile.FullName $dest
-        Expand-Archive -Force $dest $downloadTargetFolder
+        Expand-Archive -Force $elasticInstallFile.FullName $downloadTargetFolder
         $orig = "$downloadTargetFolder\elasticsearch-$versionELK"
         $dest = "$downloadTargetFolder\elasticsearch"
         Move-Item -Path $orig -Destination $dest
     }
     Copy-Item -Path "$labSources\Tools\ELK\elasticsearch.yml" -Destination "$labSources\Tools\ELK\elasticsearch\config\elasticsearch.yml"
     Copy-Item -Path "$labSources\Tools\ELK\Passwords.txt" -Destination "$labSources\Tools\ELK\elasticsearch\bin\Passwords.txt"
+    Copy-Item -Path "$labSources\Tools\ELK\Bootstrap.txt" -Destination "$labSources\Tools\ELK\elasticsearch\bin\Bootstrap.txt"
     
     Write-ScreenInfo -Message "Downloading kibana from '$kibanaDownloadLink'"
     $script:kibanaInstallFile = Get-LabInternetFile -Uri $kibanaDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
     if (-not (Test-Path $downloadTargetFolder\kibana)) {
-        $dest = "$downloadTargetFolder\kibana.zip"
-        Copy-Item $kibanaInstallFile.FullName $dest
-        Expand-Archive -Force $dest $downloadTargetFolder
+        Expand-Archive -Force $kibanaInstallFile.FullName $downloadTargetFolder
         $orig = "$downloadTargetFolder\kibana-$versionELK-windows-x86_64"
         $dest = "$downloadTargetFolder\kibana"
         Move-Item -Path $orig -Destination $dest
@@ -149,9 +146,7 @@ function Download-ELKSources
     Write-ScreenInfo -Message "Downloading logstash from '$logstashDownloadLink'"
     $script:logstashInstallFile = Get-LabInternetFile -Uri $logstashDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
     if (-not (Test-Path $downloadTargetFolder\logstash)) {
-        $dest = "$downloadTargetFolder\logstash.zip"
-        Copy-Item $logstashInstallFile.FullName $dest
-        Expand-Archive -Force $dest $downloadTargetFolder
+        Expand-Archive -Force $logstashInstallFile.FullName $downloadTargetFolder
         $orig = "$downloadTargetFolder\logstash-$versionELK"
         $dest = "$downloadTargetFolder\logstash"
         Move-Item -Path $orig -Destination $dest
@@ -178,14 +173,13 @@ function Download-ELKSources
     Write-ScreenInfo -Message "Downloading winlogbeat from '$beatDownloadLink'"
     $script:beatInstallFile = Get-LabInternetFile -Uri $beatDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
     if (-not (Test-Path $downloadTargetFolder\winlogbeat)) {
-        $dest = "$downloadTargetFolder\winlogbeat.zip"
-        Copy-Item $beatInstallFile.FullName $dest
-        Expand-Archive -Force $dest $downloadTargetFolder
+        Expand-Archive -Force $beatInstallFile.FullName $downloadTargetFolder
         $orig = "$downloadTargetFolder\winlogbeat-$versionELK-windows-x86_64"
         $dest = "$downloadTargetFolder\winlogbeat"
         Move-Item -Path $orig -Destination $dest
     }
     Copy-Item -Path "$labSources\Tools\ELK\winlogbeat.yml" -Destination "$labSources\Tools\ELK\winlogbeat\winlogbeat.yml"
+    Copy-Item -Path "$labSources\Tools\ELK\winlogbeatPolicy.json" -Destination "$labSources\Tools\ELK\winlogbeat\winlogbeatPolicy.json"
     
     Write-ScreenInfo 'finished' -TaskEnd
 }
@@ -318,7 +312,7 @@ $roleDCOnlyForest = Get-LabMachineRoleDefinition -Role RootDC @{
 Add-LabIsoImageDefinition -Name SQLServer2014 -Path "$labSources\ISOs\SQLServer2014SP3-FullSlipstream-x64-ENU.iso"
 
 # for the ELK Agents
-$roleInstallElastic = Get-LabPostInstallationActivity -CustomRole Elastic
+$roleInstallElastic = Get-LabPostInstallationActivity -CustomRole Elastic_agent
 
 # for the ELKServer
 $roleELK = Get-LabPostInstallationActivity -CustomRole ELK
@@ -337,5 +331,11 @@ Add-LabIsoImageDefinition -Name Office2016 -Path "$labSources\ISOs\en_office_pro
 
 # for BadBlood
 $roleBadBlood = Get-LabPostInstallationActivity -CustomRole BadBlood
+#--------------------------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------------------------
+# DNS config
+#--------------------------------------------------------------------------------------------------------------------
+Copy-Item -Path $PSScriptRoot\hosts -Destination C:\Windows\System32\drivers\etc\hosts -Force
 #--------------------------------------------------------------------------------------------------------------------
 
