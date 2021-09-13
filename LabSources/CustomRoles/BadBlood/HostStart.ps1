@@ -39,6 +39,7 @@ function Create-LowPriv-Account
 {
     $pwd = "Password1"
     new-aduser -Description "Low privaccount" -DisplayName Dummy -GivenName Dummy -name Dummy -SamAccountName Dummy -Surname Dummy -Enabled $true -AccountPassword (ConvertTo-SecureString ($pwd) -AsPlainText -force)
+    new-aduser -Description "CEO" -DisplayName David_Lightman -GivenName David -name David_Lightman -SamAccountName David_Lightman -Surname Lightman -Enabled $true -AccountPassword (ConvertTo-SecureString ($pwd) -AsPlainText -force)
 }
 
 Import-Lab -Name $data.Name
