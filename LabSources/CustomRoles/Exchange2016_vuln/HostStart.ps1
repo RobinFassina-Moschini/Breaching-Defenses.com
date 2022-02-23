@@ -311,6 +311,6 @@ Add-ExchangeAdRights
 Install-ExchangeWindowsFeature
 Install-ExchangeRequirements
 Start-ExchangeInstallation -All
-Enable-Mailbox -Identity David_Lightman
+
 Write-ScreenInfo "Finished installing Exchange 2016 on '$ComputerName'" -TaskEnd
 

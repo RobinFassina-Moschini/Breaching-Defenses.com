@@ -106,81 +106,22 @@ Download-BadBlood
 function Download-ELKSources
 {
     #The version of ELK
-    $versionELK = '7.14.1'
-    $elasticsearchDownloadLink = "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$versionELK-windows-x86_64.zip"
-    $kibanaDownloadLink = "https://artifacts.elastic.co/downloads/kibana/kibana-$versionELK-windows-x86_64.zip"
-    $logstashDownloadLink = "https://artifacts.elastic.co/downloads/logstash/logstash-$versionELK-windows-x86_64.zip"
-    $beatDownloadLink = "https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-$versionELK-windows-x86_64.zip"
-    # Elastic EDR, waiting for the air gap solution
-    # docker.elastic.co/package-registry/distribution:production
-    #$elasticAgentDownloadLink = "https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$versionELK-windows-x86_64.zip"
-    #$fleetServerDownloadLink = 'https://epr.elastic.co/epr/fleet_server/fleet_server-1.0.0.zip'
+    $versionELK = '8.0.0'
+    $elasticAgentDownloadLink = "https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$versionELK-windows-x86_64.zip"
     
     Write-ScreenInfo -Message 'Download ELK requirements' -TaskStart
     $downloadTargetFolder = "$labSources\Tools\ELK"
     #create the folder
     if (-not (Test-Path $downloadTargetFolder)) { New-Item $downloadTargetFolder -ItemType Directory | out-Null }
-
-    Write-ScreenInfo -Message "Downloading elasticsearch from '$elasticsearchDownloadLink'"
-    $script:elasticInstallFile = Get-LabInternetFile -Uri $elasticsearchDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
-    if (-not (Test-Path $downloadTargetFolder\elasticsearch)) {
-        Expand-Archive -Force $elasticInstallFile.FullName $downloadTargetFolder
-        $orig = "$downloadTargetFolder\elasticsearch-$versionELK"
-        $dest = "$downloadTargetFolder\elasticsearch"
+    
+    Write-ScreenInfo -Message "Downloading elastic-agent from '$elasticAgentDownloadLink'"
+    if (-not (Test-Path $downloadTargetFolder\elastic-agent)) {
+        $script:elasticAgentInstallFile = Get-LabInternetFile -Uri $elasticAgentDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
+        Expand-Archive -Force $elasticAgentInstallFile.FullName $downloadTargetFolder
+        $orig = "$downloadTargetFolder\elastic-agent-$versionELK-windows-x86_64"
+        $dest = "$downloadTargetFolder\elastic-agent"
         Move-Item -Path $orig -Destination $dest
-    }
-    Copy-Item -Path "$labSources\Tools\ELK\elasticsearch.yml" -Destination "$labSources\Tools\ELK\elasticsearch\config\elasticsearch.yml"
-    Copy-Item -Path "$labSources\Tools\ELK\Passwords.txt" -Destination "$labSources\Tools\ELK\elasticsearch\bin\Passwords.txt"
-    Copy-Item -Path "$labSources\Tools\ELK\Bootstrap.txt" -Destination "$labSources\Tools\ELK\elasticsearch\bin\Bootstrap.txt"
-    
-    Write-ScreenInfo -Message "Downloading kibana from '$kibanaDownloadLink'"
-    $script:kibanaInstallFile = Get-LabInternetFile -Uri $kibanaDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
-    if (-not (Test-Path $downloadTargetFolder\kibana)) {
-        Expand-Archive -Force $kibanaInstallFile.FullName $downloadTargetFolder
-        $orig = "$downloadTargetFolder\kibana-$versionELK-windows-x86_64"
-        $dest = "$downloadTargetFolder\kibana"
-        Move-Item -Path $orig -Destination $dest
-    }
-    Copy-Item -Path "$labSources\Tools\ELK\kibana.yml" -Destination "$labSources\Tools\ELK\kibana\config\kibana.yml"
-    
-    Write-ScreenInfo -Message "Downloading logstash from '$logstashDownloadLink'"
-    $script:logstashInstallFile = Get-LabInternetFile -Uri $logstashDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
-    if (-not (Test-Path $downloadTargetFolder\logstash)) {
-        Expand-Archive -Force $logstashInstallFile.FullName $downloadTargetFolder
-        $orig = "$downloadTargetFolder\logstash-$versionELK"
-        $dest = "$downloadTargetFolder\logstash"
-        Move-Item -Path $orig -Destination $dest
-    }
-    
-    #Write-ScreenInfo -Message "Downloading fleetPlugin from '$fleetServerDownloadLink'"
-    #$script:fleetInstallFile = Get-LabInternetFile -Uri $fleetServerDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
-    #if (-not (Test-Path $downloadTargetFolder\fleetServer.zip)) {
-    #    $dest = "$downloadTargetFolder\fleetServer.zip"
-    #    Copy-Item $fleetInstallFile.FullName $dest
-    #}
-    
-    #Write-ScreenInfo -Message "Downloading elastic-agent from '$elasticAgentDownloadLink'"
-    #$script:elasticAgentInstallFile = Get-LabInternetFile -Uri $elasticAgentDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
-    #if (-not (Test-Path $downloadTargetFolder\elastic-agent)) {
-    #    $dest = "$downloadTargetFolder\elastic-agent.zip"
-    #    Copy-Item $elasticAgentInstallFile.FullName $dest
-    #    Expand-Archive -Force $dest $downloadTargetFolder
-    #    $orig = "$downloadTargetFolder\elastic-agent-$versionELK-windows-x86_64"
-    #    $dest = "$downloadTargetFolder\elastic-agent"
-    #    Move-Item -Path $orig -Destination $dest
-    #}
-    
-    Write-ScreenInfo -Message "Downloading winlogbeat from '$beatDownloadLink'"
-    $script:beatInstallFile = Get-LabInternetFile -Uri $beatDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
-    if (-not (Test-Path $downloadTargetFolder\winlogbeat)) {
-        Expand-Archive -Force $beatInstallFile.FullName $downloadTargetFolder
-        $orig = "$downloadTargetFolder\winlogbeat-$versionELK-windows-x86_64"
-        $dest = "$downloadTargetFolder\winlogbeat"
-        Move-Item -Path $orig -Destination $dest
-    }
-    Copy-Item -Path "$labSources\Tools\ELK\winlogbeat.yml" -Destination "$labSources\Tools\ELK\winlogbeat\winlogbeat.yml"
-    Copy-Item -Path "$labSources\Tools\ELK\winlogbeatPolicy.json" -Destination "$labSources\Tools\ELK\winlogbeat\winlogbeatPolicy.json"
-    
+    }   
     Write-ScreenInfo 'finished' -TaskEnd
 }
 
@@ -193,7 +134,6 @@ Download-ELKSources
 function Download-Tools
 {
     $firefoxDownloadLink = "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US"
-    $nssmDownloadLink = "https://nssm.cc/release/nssm-2.24.zip"
     $processHackerDownloadLink = "https://github.com/processhacker/processhacker/releases/download/v2.39/processhacker-2.39-setup.exe"
     $pythonDownloadLink = "https://www.python.org/ftp/python/3.9.6/python-3.9.6-amd64.exe"
     $sheeplDownloadLink = "https://github.com/lorentzenman/sheepl.git"
@@ -203,14 +143,6 @@ function Download-Tools
     Write-ScreenInfo -Message "Downloading firefox from '$firefoxDownloadLink'"
     $script:firefoxInstallFile = Get-LabInternetFile -Uri $firefoxDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
     Copy-Item -Path $firefoxInstallFile.FullName -Destination "$labSources\Tools\Firefox.exe"
-    
-    if (-not (Test-Path $labSources\Tools\nssm.exe)) {
-        Write-ScreenInfo -Message "Downloading nssm from '$nssmDownloadLink'"
-        $script:nssmInstallFile = Get-LabInternetFile -Uri $nssmDownloadLink -Path $downloadTargetFolder -PassThru -ErrorAction Stop
-        Expand-Archive -Force $nssmInstallFile.FullName $downloadTargetFolder 
-        $orig = "$downloadTargetFolder\nssm-2.24\win64\nssm.exe"   
-        Move-Item -Path $orig -Destination "$labSources\Tools\nssm.exe"
-    }
     
     if (-not (Test-Path $labSources\Tools\processhacker.exe)) {
         Write-ScreenInfo -Message "Downloading processhacker from '$processHackerDownloadLink'"
@@ -256,7 +188,7 @@ if (-not (Test-Path $labFolder)) { New-Item $labFolder -ItemType Directory | out
 # create an empty lab template and define where the lab XML files and the VMs will be stored
 New-LabDefinition -VmPath $labFolder -Name $labName -DefaultVirtualizationEngine HyperV
 # make the network definition
-Add-LabVirtualNetworkDefinition -Name BreachingDefenses -AddressSpace 192.168.42.0/24
+Add-LabVirtualNetworkDefinition -Name BreachingDefenses -AddressSpace 192.168.57.0/24
 $AdminUser = 'Install'
 $AdminPassword = 'Password1'
 Set-LabInstallationCredential -Username $AdminUser -Password $AdminPassword
@@ -271,11 +203,11 @@ $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:ToolsPath'= "$labSources\Tools"
     'Add-LabMachineDefinition:OperatingSystem'= 'Windows Server 2016 Datacenter Evaluation (Desktop Experience)'
     'Add-LabMachineDefinition:MinMemory'= 512MB
-    'Add-LabMachineDefinition:MaxMemory'= 2048MB
+    'Add-LabMachineDefinition:MaxMemory'= 4096MB
     'Add-LabMachineDefinition:Memory'= 1024MB
     'Add-LabMachineDefinition:Processors' = 1
     'Add-LabMachineDefinition:DomainName'= $domain
-    'Add-LabMachineDefinition:DnsServer1'= '192.168.42.10'
+    'Add-LabMachineDefinition:DnsServer1'= '192.168.57.10'
 }
 #--------------------------------------------------------------------------------------------------------------------
 
@@ -288,7 +220,7 @@ $roleDC = Get-LabMachineRoleDefinition -Role RootDC @{
     ForestFunctionalLevel = 'Win2012R2'
     DomainFunctionalLevel = 'Win2012R2'
     SiteName = 'Prod'
-    SiteSubnet = '192.168.42.0/25'
+    SiteSubnet = '192.168.57.0/25'
 }
 
 # for the Child Domain Controller 
@@ -297,7 +229,7 @@ $roleDCChild = Get-LabMachineRoleDefinition -Role FirstChildDC @{
     NewDomain = $child
     DomainFunctionalLevel = 'Win2012R2'
     SiteName = 'IT'
-    SiteSubnet = '192.168.42.128/25'
+    SiteSubnet = '192.168.57.128/25'
 }
 
 # for the root Domain Controller
@@ -305,7 +237,7 @@ $roleDCOnlyForest = Get-LabMachineRoleDefinition -Role RootDC @{
     ForestFunctionalLevel = 'Win2012R2'
     DomainFunctionalLevel = 'Win2012R2'
     SiteName = 'Prod'
-    SiteSubnet = '192.168.42.0/24'
+    SiteSubnet = '192.168.57.0/24'
 }
 
 # for the SQL Server
@@ -313,9 +245,6 @@ Add-LabIsoImageDefinition -Name SQLServer2014 -Path "$labSources\ISOs\SQLServer2
 
 # for the ELK Agents
 $roleInstallElastic = Get-LabPostInstallationActivity -CustomRole Elastic_agent
-
-# for the ELKServer
-$roleELK = Get-LabPostInstallationActivity -CustomRole ELK
 
 # for Exchange 2016
 $roleExchange2016 = Get-LabPostInstallationActivity -CustomRole Exchange2016_vuln -Properties @{ 
@@ -336,6 +265,6 @@ $roleBadBlood = Get-LabPostInstallationActivity -CustomRole BadBlood
 #--------------------------------------------------------------------------------------------------------------------
 # DNS config
 #--------------------------------------------------------------------------------------------------------------------
-Copy-Item -Path $PSScriptRoot\hosts -Destination C:\Windows\System32\drivers\etc\hosts -Force
+#Copy-Item -Path $PSScriptRoot\hosts -Destination C:\Windows\System32\drivers\etc\hosts -Force
 #--------------------------------------------------------------------------------------------------------------------
 

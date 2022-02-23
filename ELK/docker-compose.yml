@@ -1,0 +1,164 @@
+version: '3'
+
+services:
+  elasticsearch-setup:
+    container_name: elasticsearch-setup
+    depends_on:
+        elasticsearch:
+            condition: service_healthy
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    user: root
+    command: >
+      bash -c '
+        echo "Config elasticsearch";
+        echo "Waiting for Elasticsearch availability";
+        until curl -s -k http://elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 5; done;
+        echo "Setting kibana_system password";
+        until curl -s -k -X POST -u elastic:${ELASTIC_PASSWORD} -H "Content-Type: application/json" http://elasticsearch:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 5; done;
+        echo "Bye!";
+      '
+    networks:
+      - elastic
+
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data:rw,z
+    ports:
+      - ${ES_PORT}:9200
+      - ${ES_NODE_PORT}:9300
+    environment:
+      - NODE_NAME=elasticsearch
+      - NETWORK_HOST=0.0.0.0
+      - HTTP_PORT=9200
+      - TRANSPORT_PORT=9300
+      - ES_JAVA_OPTS=-Xmx256m -Xms256m
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - BOOTSTRAP_MEMORY_LOCK=true
+      - logger.org.elasticsearch.discovery=WARN
+      - xpack.security.enabled=true
+      - XPACK_LICENSE_SELF_GENERATED_TYPE=${LICENSE}
+      - XPACK_SECURITY_AUTHC_API_KEY_ENABLED=true
+      - XPACK_SECURITY_AUTHC_ANONYMOUS_ROLES=superuser
+      - XPACK_SECURITY_AUTHC_ANONYMOUS_AUTHZ_EXCEPTION=false
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s -k http://localhost:9200 | grep -q 'missing authentication credentials'" ]
+      interval: 15s
+      timeout: 15s
+      retries: 120
+    mem_limit: ${MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elastic
+
+  kibana:
+    container_name: kibana
+    depends_on:
+        elasticsearch:
+            condition: service_healthy
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    volumes:
+      - kibanadata:/usr/share/kibana/data:rw,z
+    ports:
+      - ${KIBANA_PORT}:5601
+    environment:
+      - SERVERNAME=kibana
+      - xpack.security.enabled=true
+      - SERVER_PUBLICBASEURL=http://127.0.0.1:5601/
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=a46aa8940da8f6b539f15303aee23246
+      - XPACK_REPORTING_ENCRYPTIONKEY=fcb1015bda9a3ffb662501e8bc5ca4cb
+      - XPACK_SECURITY_ENCRYPTIONKEY=1f5b0cd0378c8c2712b88f18d07e128c
+      - XPACK_REPORTING_ROLES_ENABLED=false
+      - XPACK_REPORTING_KIBANASERVER_HOSTNAME=localhost
+      - xpack.fleet.registryUrl="http://package-registry:8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'" ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    networks:
+      - elastic
+      
+  fleet-setup:
+    container_name: fleet-setup
+    depends_on:
+        kibana:
+            condition: service_healthy
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    volumes:
+      - ./token:/tmp/mount
+    user: root
+    command: >
+      bash -c '
+        echo "Config:";
+        curl -k -X POST -u elastic:${ELASTIC_PASSWORD} -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d "{\"enabled\":false}" "http://kibana:5601/api/telemetry/v2/optIn";
+        until curl -k -u elastic:${ELASTIC_PASSWORD} http://kibana:5601/api/fleet/settings | grep -q "fleet-default-settings"; do sleep 5; done;
+        curl -k -X PUT -u elastic:${ELASTIC_PASSWORD} -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d "{\"fleet_server_hosts\":[\"http://elk.breachdefs.com:28220/\"]}" http://kibana:5601/api/fleet/settings;
+        curl -k -X PUT -u elastic:${ELASTIC_PASSWORD} -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d "{\"name\":\"default\",\"type\":\"elasticsearch\",\"hosts\":[\"http://elk.breachdefs.com:29200\"],\"is_default\":true,\"is_default_monitoring\":true,\"config_yaml\":\"\",\"ca_trusted_fingerprint\":\"\"}" http://kibana:5601/api/fleet/outputs/fleet-default-output;
+        echo "{\"name\":\"EDR\",\"description\":\"EDR\",\"namespace\":\"edr\",\"policy_id\":\""  >> /tmp/policy;
+        curl -s -k -X POST -u elastic:${ELASTIC_PASSWORD} -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d "{\"name\":\"EDR\",\"description\":\"EDR\",\"namespace\":\"edr\",\"monitoring_enabled\":[\"logs\",\"metrics\"]}" "http://kibana:5601/api/fleet/agent_policies?sys_monitoring=true" | cut -d \" -f6 >> /tmp/policyid;
+        cat /tmp/policyid >> /tmp/policy;
+        echo "\",\"enabled\":true,\"output_id\":\"\",\"inputs\":[],\"package\":{\"name\":\"endpoint\",\"title\":\"Endpoint Security\",\"version\":\"1.4.1\"}}" >> /tmp/policy;
+        curl -k -X POST -u elastic:${ELASTIC_PASSWORD} -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d "@/tmp/policy" "http://kibana:5601/api/fleet/package_policies";
+        echo "{\"name\":\"EDR\",\"policy_id\":\"" >> /tmp/token;
+        cat /tmp/policyid >> /tmp/token;
+        echo "\"}" >> /tmp/token;
+        cat /tmp/token;
+        curl -s -k -X POST -u elastic:${ELASTIC_PASSWORD} -H "kbn-xsrf: reporting" -H "Content-Type: application/json" -d "@/tmp/token" "http://kibana:5601/api/fleet/enrollment_api_keys" | cut -d \" -f16 > /tmp/elastictoken;
+        cat /tmp/elastictoken;
+        cp /tmp/elastictoken /tmp/mount/
+        echo "Bye!";
+        '
+    networks:
+      - elastic
+   
+  fleet:
+    container_name: fleet
+    depends_on:
+        - fleet-setup
+    image: docker.elastic.co/beats/elastic-agent:${STACK_VERSION}
+    ports:
+      - "${FLEET_PORT}:8220"
+    environment:
+      - "FLEET_SERVER_ENABLE=1"
+      - "FLEET_SERVER_INSECURE_HTTP=1"
+      - "FLEET_SERVER_POLICY=${FLEET_SERVER_POLICY}"
+      - "KIBANA_FLEET_SETUP=1"
+      - "KIBANA_FLEET_HOST=http://kibana:5601"
+      - "FLEET_SERVER_ES=http://elk.breachdefs.com:29200"
+      - "FLEET_SERVER_HOST=0.0.0.0"
+      - "STATE_PATH=/usr/share/elastic-agent"
+      - "ELASTICSEARCH_USERNAME=elastic"
+      - "ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}"
+    networks:
+      - elastic
+      
+  package-registry:
+    container_name: package-registry
+    depends_on:
+        - elasticsearch
+    image: docker.elastic.co/package-registry/distribution:production
+    ports:
+      - "${PACKAGE_REGISTRY_PORT}:8080"
+    environment:
+      - LS_JAVA_OPTS=-Xmx256m -Xms256m
+    networks:
+      - elastic
+
+networks:
+  elastic:
+    driver: bridge
+
+volumes:
+  elasticsearch:
+    driver: local
+  kibanadata:
+    driver: local

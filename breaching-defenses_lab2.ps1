@@ -22,13 +22,10 @@ Add-LabDomainDefinition -Name $domain -AdminUser $AdminUser -AdminPassword $Admi
 # Forest breachdefs.com
 #--------------------------------------------------------------------------------------------------------------------
 # the domain controller of the first forest
-Add-LabMachineDefinition -Name DC1 -ResourceName 2-DC1 -IpAddress 192.168.42.10 -Roles $roleDC -PostInstallationActivity $roleBadBlood, $roleInstallElastic
+Add-LabMachineDefinition -Name DC1 -ResourceName 2-DC1 -IpAddress 192.168.57.10 -Roles $roleDC -PostInstallationActivity $roleBadBlood, $roleInstallElastic
 
 # The Exchange Server 
-Add-LabMachineDefinition -Name OWA -ResourceName 2-OWA -MaxMemory 6144MB -Memory 6144MB -IpAddress 192.168.42.11 -PostInstallationActivity $roleExchange2016, $roleInstallElastic
-
-# The ELK Server 
-Add-LabMachineDefinition -Processors 2 -MaxMemory 4096MB -Memory 4096MB -Name ELK -ResourceName 2-ELK -IpAddress 192.168.42.200 -PostInstallationActivity $roleELK
+Add-LabMachineDefinition -Name OWA -ResourceName 2-OWA -MaxMemory 6144MB -Memory 6144MB -IpAddress 192.168.57.11 -PostInstallationActivity $roleExchange2016, $roleInstallElastic
 #--------------------------------------------------------------------------------------------------------------------
 
 Install-Lab

@@ -20,13 +20,10 @@ Add-LabDomainDefinition -Name $domain -AdminUser $AdminUser -AdminPassword $Admi
 # Forest breachdefs.com
 #--------------------------------------------------------------------------------------------------------------------
 # the domain controller of the first forest
-Add-LabMachineDefinition -Name DC1 -ResourceName 1-DC1 -IpAddress 192.168.42.10 -Roles $roleDCOnlyForest -PostInstallationActivity $roleBadBlood, $roleInstallElastic
-
-# The ELK Server 
-Add-LabMachineDefinition -Processors 2 -MaxMemory 4096MB -Memory 4096MB -Name ELK -ResourceName 1-ELK -IpAddress 192.168.42.200 -PostInstallationActivity $roleELK
+Add-LabMachineDefinition -Name DC1 -ResourceName 1-DC1 -IpAddress 192.168.57.10 -Roles $roleDCOnlyForest -PostInstallationActivity $roleBadBlood, $roleInstallElastic
 
 # The Workstations
-Add-LabMachineDefinition -Name Wrkstn-1 -ResourceName 1-Wrkstn-1 -IpAddress 192.168.42.151 -OperatingSystem 'Windows 10 Pro' -PostInstallationActivity $roleInstallElastic
+Add-LabMachineDefinition -Name Wrkstn-1 -ResourceName 1-Wrkstn-1 -IpAddress 192.168.57.151 -OperatingSystem 'Windows 10 Pro' -PostInstallationActivity $roleInstallElastic
 #--------------------------------------------------------------------------------------------------------------------
 
 

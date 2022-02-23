@@ -20,7 +20,7 @@ Add-LabDomainDefinition -Name $domain -AdminUser $AdminUser -AdminPassword $Admi
 # Forest breachdefs.com
 #--------------------------------------------------------------------------------------------------------------------
 # the domain controller of the first forest
-Add-LabMachineDefinition -Name DC1  -ResourceName 0-DC1 -IpAddress 192.168.42.10 -Roles $roleDCOnlyForest -PostInstallationActivity $roleBadBlood
+Add-LabMachineDefinition -Name DC1  -ResourceName 0-DC1 -IpAddress 192.168.57.10 -Roles $roleDCOnlyForest -PostInstallationActivity $roleBadBlood
 #--------------------------------------------------------------------------------------------------------------------
 
 
